@@ -69,7 +69,14 @@ impl Game {
             self.score += 1;
             let food = Game::gen_food(self.width, self.height, &self.snake.get_body().clone());
             self.food = food;
-            self.speed += 0.1
+            self.speed_up();
+        }
+    }
+
+    fn speed_up(&mut self) {
+        match self.score {
+            x if x % 5 == 0 => self.speed += 0.1,
+            _ => (),
         }
     }
 
