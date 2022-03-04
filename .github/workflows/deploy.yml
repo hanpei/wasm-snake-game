@@ -1,36 +1,58 @@
-# This is a basic workflow to help you get started with Actions
+# 一个workflow，名为deploy to tengxunyun
+name: deploy to tencentcvm
 
-name: CI
+on: # 此CI/CD触发时的事件
+  push: # 在代码提交时自动触发
+    branches:
+      - master
+    paths-ignore: # 下列文件的变更不触发部署，可以自行添加
+      - README.md
+      - LICENSE
 
-# Controls when the workflow will run
-on:
-  # Triggers the workflow on push or pull request events but only for the main branch
-  push:
-    branches: [ main ]
-  pull_request:
-    branches: [ main ]
-
-  # Allows you to run this workflow manually from the Actions tab
-  workflow_dispatch:
-
-# A workflow run is made up of one or more jobs that can run sequentially or in parallel
-jobs:
-  # This workflow contains a single job called "build"
-  build:
-    # The type of runner that the job will run on
-    runs-on: ubuntu-latest
-
-    # Steps represent a sequence of tasks that will be executed as part of the job
-    steps:
-      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
-      - uses: actions/checkout@v2
-
-      # Runs a single command using the runners shell
-      - name: Run a one-line script
-        run: echo Hello, world!
-
-      # Runs a set of commands using the runners shell
-      - name: Run a multi-line script
+# 一个 CI/CD 的工做流有许多 jobs 组成，好比最典型的 job 是 lint，test，build。
+jobs: 
+  build: # 构建job
+    runs-on: ubuntu-latest # 跑workflow的服务器系统
+    steps: # job的一系列动做
+      # 切换分支获取源码
+      - name: Checkout # step的名称，将会在 github action 的控制台中显示
+        # 选择一个action，能够理解为若干 steps.run，有利于代码复用
+        uses: actions/checkout@master
+      
+      - uses: jetli/wasm-pack-action@v0.3.0
+        with:
+        # Optional version of wasm-pack to install(eg. 'v0.9.1', 'latest')
+          version: 'latest'
+      - name: wasm-pack buld
         run: |
-          echo Add other actions to build,
-          echo test, and deploy your project.
+          wasm-pack build --release
+
+      # 安装使用 node:10
+      - name: use Node.js 10
+        uses: actions/setup-node@v1
+        with:
+          node-version: 10
+      # 运行命令，npm install && npm run build
+      - name: npm install and build
+        run: |
+          cd www
+          npm install
+          npm run build
+        env:
+          CI: true
+      # 部署到腾讯云服务器
+      - name: Deploy to Server
+        uses: easingthemes/ssh-deploy@v2.0.7
+        env:
+            # 本地.ssh文件下的私钥id_rsa，存在secrets的TOKEN中
+            SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }} 
+            # 复制操做的参数。"-avzr --delete"意味部署时清空服务器目标目录下的文件
+            ARGS: "-avzr --delete" 
+            # 源目录，相对于$GITHUB_WORKSPACE根目录的路径
+            SOURCE: "www/dist/" 
+            # 服务器域名
+            REMOTE_HOST: ${{ secrets.SSH_HOST }}
+            # 腾讯云默认用户名为root
+            REMOTE_USER: ${{ secrets.SSH_USERNAME }}
+            # 目标目录
+            TARGET: "/var/www/snake-game" 
