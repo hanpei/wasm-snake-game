@@ -114,6 +114,11 @@ impl Snake {
         self.body.clone()
     }
 
+    pub fn get_head(&self) -> Point {
+        let size = self.body.len();
+        self.body[size - 1].clone()
+    }
+
     pub fn get_head_segment(&self) -> Segment {
         let size = self.body.len();
         let start = &self.body[size - 2];
@@ -127,6 +132,15 @@ impl Snake {
         let tail_segment = Segment::new(next, tail);
         let new_tail = tail.add(&tail_segment.vector().normalize().scale(STEP_DISTANCE));
         self.body[0] = new_tail;
+    }
+
+    pub fn reset(&mut self, head: Point) -> Self {
+        let tail = head.subtract(&Point::new(3, 0));
+
+        Self {
+            body: vec![tail, head],
+            direction: Direction::default(),
+        }
     }
 }
 

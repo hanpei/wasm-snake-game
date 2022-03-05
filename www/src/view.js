@@ -3,6 +3,7 @@ import { config as cfg } from './main';
 export class View {
     constructor(game) {
         this.init(game);
+        this.gameStatus = 'going';
     }
 
     init(game) {
@@ -45,6 +46,10 @@ export class View {
         this.drawFood();
         this.drawSnake();
         this.drawScore();
+
+        if (this.gameStatus === 'over') {
+            this.drawOverBoard();
+        }
     }
 
     drawScore() {
@@ -115,5 +120,36 @@ export class View {
         this.container.removeChild(canvas);
         this.init(game);
         this.render();
+    }
+
+    restart(game) {
+        this.gameStatus = 'going';
+        this.reload(game);
+    }
+
+    drawOverBoard() {
+        this.ctx.fillStyle = 'black';
+        this.ctx.globalAlpha = 0.5;
+        this.ctx.fillRect(0, 0, this.ctx.canvas.width, this.ctx.canvas.height);
+        this.ctx.globalAlpha = 1;
+        this.ctx.fillStyle = '#ffffff';
+        this.ctx.font = '30px mono';
+        this.ctx.fillText(
+            'Game Over',
+            this.ctx.canvas.width / 2 - 70,
+            this.ctx.canvas.width / 2 - 20
+        );
+
+        this.ctx.font = '18px mono';
+        this.ctx.fillText(
+            'Press "Enter" to Restart',
+            this.ctx.canvas.width / 2 - 90,
+            this.ctx.canvas.width / 2 + 20
+        );
+    }
+
+    gameOver() {
+        this.gameStatus = 'over';
+        this.drawOverBoard();
     }
 }

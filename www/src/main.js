@@ -13,21 +13,22 @@ export const config = {
 
 export class GameManager {
     constructor() {
-        this.game = new Game(config.gameWidth, config.gameHeight, config.speed);
+        this.initGame();
         this.view = new View(this.game);
         this.bindEvents();
         this.controller = new Controller();
-        window.game = this.game;
+        this.bindResart = this.bindResart.bind(this);
+    }
+
+    initGame() {
+        this.gameStatus = 'init';
+        this.game = new Game(config.gameWidth, config.gameHeight, config.speed);
     }
 
     bindEvents() {
         window.addEventListener('resize', () => {
             this.view.reload(this.game);
         });
-    }
-
-    render() {
-        this.view.render();
     }
 
     step() {
@@ -44,16 +45,45 @@ export class GameManager {
     }
 
     loop() {
-        this.step();
-        setTimeout(() => {
+        if (this.game.is_over()) {
+            this.view.gameOver();
+            this.controller.movement = undefined;
+            this.addListenToRestart();
+            return;
+        }
+        this.timer = setTimeout(() => {
+            this.step();
             requestAnimationFrame(this.loop.bind(this));
         }, 1000 / 10 / this.game.get_speed());
     }
 
+    addListenToRestart() {
+        document.addEventListener('keydown', this.bindResart);
+    }
+
+    bindResart({ code }) {
+        if (code === 'Enter') {
+            this.restart();
+        }
+    }
+
+    removeListenToRestart() {
+        document.removeEventListener('keydown', this.bindResart);
+    }
+
+    restart() {
+        clearTimeout(this.timer);
+        this.removeListenToRestart();
+
+        this.game.restart();
+        this.view.restart(this.game);
+        this.run();
+    }
+
     run() {
-        this.render();
         console.log('game running... ', this.game);
-        // console.log('snake:  ', this.game.get_snake());
+        console.log('snake:  ', this.game.get_snake());
+        console.log('speed:  ', this.game.get_speed());
         this.loop();
     }
 }

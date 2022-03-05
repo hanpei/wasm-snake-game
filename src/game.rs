@@ -33,6 +33,16 @@ impl Game {
         }
     }
 
+    pub fn restart(&mut self) {
+        let head = Point::new(self.width / 2, self.height / 2);
+        let snake = self.snake.reset(head);
+
+        let vectors = &snake.clone().get_body();
+        self.snake = snake;
+        self.food = Game::gen_food(self.width, self.height, vectors);
+        self.score = 0;
+    }
+
     pub fn width(&self) -> i32 {
         self.width
     }
@@ -60,6 +70,15 @@ impl Game {
     pub fn step(&mut self, direction: Option<Direction>) {
         self.snake.step(direction);
         self.process_food()
+    }
+
+    pub fn is_over(&self) -> bool {
+        // check if snake is out of bounds
+        let Point { x, y } = self.snake.get_head();
+        if x < 0.0 || x >= self.width as f64 || y < 0.0 || y >= self.height as f64 {
+            return true;
+        }
+        false
     }
 
     fn process_food(&mut self) {
