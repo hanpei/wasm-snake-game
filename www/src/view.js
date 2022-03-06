@@ -122,7 +122,7 @@ export class View {
         this.render();
     }
 
-    restart(game) {
+    reset(game) {
         this.gameStatus = 'going';
         this.reload(game);
     }

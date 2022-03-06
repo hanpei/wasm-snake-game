@@ -2,6 +2,7 @@ use js_sys::Array;
 use wasm_bindgen::{prelude::wasm_bindgen, JsValue};
 
 const STEP_DISTANCE: f64 = 1.0;
+const GROW_DISTANCE: f64 = 1.0;
 
 #[wasm_bindgen]
 #[derive(Debug, Clone, PartialEq)]
@@ -34,8 +35,7 @@ impl Point {
     }
 
     fn lenght(&self) -> f64 {
-        let val = (self.x).hypot(self.y);
-        val
+        (self.x).hypot(self.y)
     }
 
     fn scale(&self, number: f64) -> Point {
@@ -130,7 +130,7 @@ impl Snake {
         let tail = &self.body[0];
         let next = &self.body[1];
         let tail_segment = Segment::new(next, tail);
-        let new_tail = tail.add(&tail_segment.vector().normalize().scale(STEP_DISTANCE));
+        let new_tail = tail.add(&tail_segment.vector().normalize().scale(GROW_DISTANCE));
         self.body[0] = new_tail;
     }
 
@@ -142,11 +142,15 @@ impl Snake {
             direction: Direction::default(),
         }
     }
+
+    pub fn lenght(&self) -> usize {
+        self.body.len()
+    }
 }
 
 impl From<Snake> for Array {
     fn from(s: Snake) -> Self {
-        s.body.clone().into_iter().map(JsValue::from).collect()
+        s.body.into_iter().map(JsValue::from).collect()
     }
 }
 
@@ -201,7 +205,7 @@ impl<'a> Segment<'a> {
     }
 
     fn vector(&self) -> Point {
-        self.end.subtract(&self.start)
+        self.end.subtract(self.start)
     }
 
     pub fn length(&self) -> f64 {
@@ -212,12 +216,7 @@ impl<'a> Segment<'a> {
     pub fn is_point_inside(&self, point: &Point) -> bool {
         let first = Segment::new(self.start, point);
         let second = Segment::new(point, self.end);
-        println!("first {:?}: {:?}", &first, &first.length());
-        println!("second {:?}: {:?}", &second, &second.length());
-        println!("self {:?}: {:?}", &self, &self.length());
-        println!("{}", first.length() + second.length());
         f64_equal(self.length(), first.length() + second.length())
-        // self.length() == first.length() + second.length()
     }
 
     pub fn from_vectors(vectors: &Vec<Point>) -> Vec<Segment> {

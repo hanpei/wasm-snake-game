@@ -8,7 +8,7 @@ export const config = {
     gameHeight: 25,
     foodColor: '#FF628C',
     snakeColor: '#3498db',
-    speed: 1,
+    speed: 0.6,
 };
 
 export class GameManager {
@@ -17,7 +17,7 @@ export class GameManager {
         this.view = new View(this.game);
         this.bindEvents();
         this.controller = new Controller();
-        this.bindResart = this.bindResart.bind(this);
+        this.bindEnterKey = this.bindEnterKey.bind(this);
     }
 
     initGame() {
@@ -58,25 +58,26 @@ export class GameManager {
     }
 
     addListenToRestart() {
-        document.addEventListener('keydown', this.bindResart);
+        document.addEventListener('keydown', this.bindEnterKey);
     }
 
-    bindResart({ code }) {
+    bindEnterKey({ code }) {
         if (code === 'Enter') {
             this.restart();
         }
     }
 
     removeListenToRestart() {
-        document.removeEventListener('keydown', this.bindResart);
+        document.removeEventListener('keydown', this.bindEnterKey);
     }
 
     restart() {
         clearTimeout(this.timer);
         this.removeListenToRestart();
 
-        this.game.restart();
-        this.view.restart(this.game);
+        this.game.reset();
+        this.view.reset(this.game);
+        this.controller.reset();
         this.run();
     }
 

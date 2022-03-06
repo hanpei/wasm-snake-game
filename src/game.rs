@@ -21,7 +21,7 @@ impl Game {
     pub fn new(width: i32, height: i32, speed: f64) -> Self {
         let head = Point::new(width / 2, height / 2);
         let snake = Snake::new(head);
-        let vectors = &snake.clone().get_body();
+        let vectors = &snake.get_body();
 
         Self {
             width,
@@ -33,11 +33,11 @@ impl Game {
         }
     }
 
-    pub fn restart(&mut self) {
+    pub fn reset(&mut self) {
         let head = Point::new(self.width / 2, self.height / 2);
         let snake = self.snake.reset(head);
 
-        let vectors = &snake.clone().get_body();
+        let vectors = &snake.get_body();
         self.snake = snake;
         self.food = Game::gen_food(self.width, self.height, vectors);
         self.score = 0;
@@ -73,6 +73,13 @@ impl Game {
     }
 
     pub fn is_over(&self) -> bool {
+        match self.check_boudary() {
+            true => true,
+            false => self.check_snake_collision(),
+        }
+    }
+
+    pub fn check_boudary(&self) -> bool {
         // check if snake is out of bounds
         let Point { x, y } = self.snake.get_head();
         if x < 0.0 || x >= self.width as f64 || y < 0.0 || y >= self.height as f64 {
@@ -80,13 +87,26 @@ impl Game {
         }
         false
     }
+    pub fn check_snake_collision(&self) -> bool {
+        let head = self.snake.get_head();
+        let size = self.snake.lenght();
+        if size < 5 {
+            return false;
+        }
+        let vectors = &self.snake.get_body()[..size - 3].to_vec();
+        let segments = Segment::from_vectors(vectors);
+
+        return segments
+            .iter()
+            .any(|segment| segment.is_point_inside(&head));
+    }
 
     fn process_food(&mut self) {
         let head_segment = self.snake.get_head_segment();
         if head_segment.is_point_inside(&self.food) {
             self.snake.grow();
             self.score += 1;
-            let food = Game::gen_food(self.width, self.height, &self.snake.get_body().clone());
+            let food = Game::gen_food(self.width, self.height, &self.snake.get_body());
             self.food = food;
             self.speed_up();
         }

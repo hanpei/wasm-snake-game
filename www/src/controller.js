@@ -1,10 +1,14 @@
 import { Direction } from 'wasm-snake-game';
 
 export class Controller {
-    constructor(status = 'going') {
-        this.gameStatus = status;
+    constructor() {
         this.gameStoped = false;
         this.addEvents();
+    }
+
+    reset() {
+        this.gameStoped = false;
+        this.movement = undefined;
     }
 
     addEvents() {
